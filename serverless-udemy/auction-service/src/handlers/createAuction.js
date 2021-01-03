@@ -4,7 +4,7 @@ import AWS from 'aws-sdk';
 const Dynamodb = new AWS.DynamoDB.DocumentClient();
 
 async function createAuction(event, context) {
-  const { title } = event.body;
+  const { title } = JSON.parse(event.body);
   const now = new Date().toISOString();
   const auction = {
     id: uuid(),
@@ -12,13 +12,15 @@ async function createAuction(event, context) {
     status: 'OPEN',
     createdAt: now,
   }
-  Dynamodb.put({
-    TableName:  'AuctionTable',
+
+  await Dynamodb.put({
+    TableName: process.env.AUCTION_TABLE_NAME,
     Item: auction,
   }).promise();
+
   return {
     statusCode: 201,
-    body: JSON.stringify({ auction }),
+    body: JSON.stringify( auction ),
   };
 }
 

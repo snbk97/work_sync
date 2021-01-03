@@ -8,24 +8,18 @@ plugins:
 
 provider:
   name: aws
-  region: us-east-1
   runtime: nodejs12.x
   memorySize: 256
   stage: ${opt:stage, 'dev'}
+  region: us-east-1
+  environment:
+    AUCTION_TABLE_NAME: ${self:custom.AuctionTable.name}
+  iamRoleStatements:
+    - ${file(IAM/AuctionTableIAM.yml):AuctionTableIAM}
 
 resources:
   Resources:
-    AuctionTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: AuctionTable
-        BillingMode: PAY_PER_REQUEST
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S 
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
+    AuctionTable: ${file(Resources/AuctionTableResource.yml):AuctionTable}
 
 functions:
   createAuction:
@@ -36,5 +30,8 @@ functions:
           path: /auction
 
 custom:
+  AuctionTable:
+    name: !Ref AuctionTable
+    arn: !GetAtt AuctionTable.Arn
   bundle:
     linting: false
